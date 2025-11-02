@@ -4,14 +4,14 @@ grammar Blatt3Grammatik;
 start: statement* EOF;
 
 statement   : assign
-            | expresion
+            | expression
             | conditional
             | loop
             ;
 
-assign      : ID ':=' expresion ;
+assign      : ID ':=' expression ;
 
-expresion   : arithmetic
+expression   : arithmetic
             | STRING
             ;
 
@@ -33,8 +33,7 @@ conditional : 'if' condition 'do' statement* 'end'
             | 'if' condition 'do' statement* 'else do' statement* 'end'
             ;
 
-loop        : 'while' condition 'do' statement* 'end'
-            ;
+loop        : 'while' condition 'do' statement* 'end' ;
 
 term        : NUMBER | ID ;
 
