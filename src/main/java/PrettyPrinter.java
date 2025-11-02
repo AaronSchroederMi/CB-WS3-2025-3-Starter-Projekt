@@ -133,21 +133,6 @@ public class PrettyPrinter {
         }
     }
 
-    private static void astPrint(ParseTree tree, Blatt3GrammatikParser parser) {
-        if (tree.toStringTree(parser).startsWith("(conditional")) {
-            IO.println(tree.getChild(1).toStringTree(parser));
-        }
-        if (tree.toStringTree(parser).startsWith("(assign")) {
-            IO.print(tree.getChild(0).toStringTree(parser) + " ");
-            if (tree.getChild(2).getChild(0).toStringTree(parser).startsWith("(arithmetic")) {
-                IO.print(tree.getChild(2).getChild(0).toStringTree(parser) + "\n");
-            }
-        }
-        for (int i = 0; i < tree.getChildCount(); i++) {
-            astPrint(tree.getChild(i), parser);
-        }
-    }
-
     private static void printAST(ParseTree tree, int indent) {
         String rule = tree.getClass().getSimpleName().replace("Context", "");
         String pad = "   ".repeat(indent);
