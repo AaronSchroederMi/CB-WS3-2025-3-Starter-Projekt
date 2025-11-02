@@ -12,6 +12,7 @@ import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.ParseTreeListener;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
+import org.antlr.v4.runtime.tree.TerminalNode;
 
 public class PrettyPrinter {
     private static String example1 = "a     := 0\n" +
@@ -63,15 +64,26 @@ public class PrettyPrinter {
             IO.println("Cleaned:");
             prettyPrint(tree, parser, 0);
         }
+        IO.println("\n\n\nAST");
+
+        for(String example : examples) {
+            Blatt3GrammatikLexer lexer = new Blatt3GrammatikLexer(CharStreams.fromString(example));
+            CommonTokenStream tokens = new CommonTokenStream(lexer);
+            Blatt3GrammatikParser parser = new Blatt3GrammatikParser(tokens);
+
+            ParseTree tree = parser.start();
+            printAST(tree, 0);
+            IO.println();
+        }
     }
 
     private static void prettyPrint(ParseTree tree, Blatt3GrammatikParser parser, int level) {
-        //IO.print("level: " + level);
+        //each statement has at least its own line
         if (tree.toStringTree(parser).startsWith("(statement")) {
             IO.println();
         }
 
-
+        //handles while loop indentation
         if (tree.getParent() != null && tree.getParent().toStringTree(parser).startsWith("(loop")) {
             if (!tree.toStringTree(parser).equals("while")
                 & !tree.toStringTree(parser).startsWith("(condition")
@@ -84,6 +96,8 @@ public class PrettyPrinter {
                 IO.print("   ".repeat(level));
             }
         }
+
+        //handles if-Statement indentation
         if (tree.getParent() != null && tree.getParent().toStringTree(parser).startsWith("(conditional")) {
             if (!tree.toStringTree(parser).equals("if")
                 & !tree.toStringTree(parser).startsWith("(condition")
@@ -101,10 +115,13 @@ public class PrettyPrinter {
                 IO.print("   ".repeat(level - 1));
             }
         }
+
+        //each token is seperated by whitespace
         if (tree.getChildCount() == 0) {
             IO.print(tree.toStringTree() + " ");
         }
 
+        //traverses entire tree
         for (int i = 0; i < tree.getChildCount(); i++) {
             if (tree.getChild(i).toStringTree(parser).equals("do")) {
                 level++;
@@ -115,4 +132,45 @@ public class PrettyPrinter {
             prettyPrint(tree.getChild(i), parser, level);
         }
     }
+
+    private static void astPrint(ParseTree tree, Blatt3GrammatikParser parser) {
+        if (tree.toStringTree(parser).startsWith("(conditional")) {
+            IO.println(tree.getChild(1).toStringTree(parser));
+        }
+        if (tree.toStringTree(parser).startsWith("(assign")) {
+            IO.print(tree.getChild(0).toStringTree(parser) + " ");
+            if (tree.getChild(2).getChild(0).toStringTree(parser).startsWith("(arithmetic")) {
+                IO.print(tree.getChild(2).getChild(0).toStringTree(parser) + "\n");
+            }
+        }
+        for (int i = 0; i < tree.getChildCount(); i++) {
+            astPrint(tree.getChild(i), parser);
+        }
+    }
+
+    private static void printAST(ParseTree tree, int indent) {
+        String rule = tree.getClass().getSimpleName().replace("Context", "");
+        String pad = "   ".repeat(indent);
+        if (rule.equals("Conditional")) {
+            rule = "if";
+            if (tree.getText().contains("else")) rule = "if-else";
+        }
+        if (!rule.equals("Term")
+            & !rule.equals("Statement")
+            & !rule.equals("Arithmetic")
+            & !rule.equals("Condition")
+            ) {
+            System.out.println(pad + rule);
+        }
+
+        for (int i = 0; i < tree.getChildCount(); i++) {
+            ParseTree child = tree.getChild(i);
+            if (!(child instanceof TerminalNode)) {
+                printAST(child, indent + 1);
+            } else if (!child.getText().equals("do") & !child.getText().equals("end") & !child.getText().equals(":=") & !child.getText().equals("if") & !child.getText().equals("else do")) {
+                System.out.println(pad + "   " + child.getText());
+            }
+        }
+    }
+
 }
